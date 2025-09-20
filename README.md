@@ -1,8 +1,7 @@
 # Capstoneproject
 
 Smart Outfit Planner
-- Project Overview
-StyleSync è un outfit planner intelligente che risolve il problema quotidiano di decidere cosa indossare. L'applicazione permette agli utenti di caricare foto dei propri capi d'abbigliamento e genera automaticamente abbinamenti eleganti e appropriati, risparmiando tempo prezioso ogni mattina.
+- Antofit planner è un outfit planner intelligente che risolve il problema quotidiano di decidere cosa indossare. L'applicazione permette agli utenti di caricare foto dei propri capi d'abbigliamento e genera automaticamente abbinamenti eleganti e appropriati, risparmiando tempo prezioso ogni mattina.
 
 - Il Problema che Risolve
 
