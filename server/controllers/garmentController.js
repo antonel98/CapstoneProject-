@@ -1,16 +1,22 @@
 // server/controllers/garmentController.js
+
+/**
+ * Controller per la gestione dei capi d'abbigliamento
+ * Gestisce operazioni CRUD (Create, Read, Delete) sui capi dell'utente
+ */
+
 const Garment = require('../models/Garment');
 const User = require('../models/User');
 const path = require('path');
 
-// @desc    Upload nuovo capo
-// @route   POST /api/garments
-// @access  Private
+/**
+ * @desc    Carica un nuovo capo d'abbigliamento nel guardaroba
+ * @route   POST /api/garments
+ * @access  Private (richiede autenticazione - da implementare)
+ */
 const uploadGarment = async (req, res) => {
   try {
-    console.log('Upload iniziato:', req.body);
-    console.log('File ricevuto:', req.file);
-
+    // Estrae i dati dal form
     const {
       name,
       category,
@@ -23,6 +29,7 @@ const uploadGarment = async (req, res) => {
       notes
     } = req.body;
 
+    // Verifica che sia stato caricato un file
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -30,13 +37,14 @@ const uploadGarment = async (req, res) => {
       });
     }
 
-    // Il file è già stato caricato da multer
+    // Costruisce l'URL dell'immagine caricata
     const imageUrl = `/uploads/${req.file.filename}`;
 
-    // Crea il nuovo capo (con ID utente temporaneo)
+    // Crea il nuovo capo nel database
+    // NOTA: userId temporaneo per sviluppo, sarà sostituito con req.user.id dopo implementazione autenticazione
     const garment = await Garment.create({
-      userId: '507f1f77bcf86cd799439011', // ID temporaneo per test
-      name: name || undefined,
+      userId: '507f1f77bcf86cd799439011', // TODO: Sostituire con req.user.id
+      name: name || undefined, // Se non fornito, verrà generato automaticamente dal model
       category,
       subcategory,
       primaryColor,
@@ -49,13 +57,13 @@ const uploadGarment = async (req, res) => {
       notes
     });
 
-    console.log('Capo creato con successo:', garment);
-
-    // Statistiche utente commentate per test
+    // TODO: Abilitare dopo implementazione autenticazione
+    // Aggiorna le statistiche dell'utente
     // await User.findByIdAndUpdate(req.user.id, {
     //   $inc: { 'stats.totalGarments': 1 }
     // });
 
+    // Risposta di successo
     res.status(201).json({
       success: true,
       message: 'Capo caricato con successo!',
@@ -63,7 +71,7 @@ const uploadGarment = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Errore upload:', error);
+    console.error('Errore upload capo:', error);
     res.status(500).json({
       success: false,
       message: 'Errore nel caricamento del capo',
@@ -72,11 +80,15 @@ const uploadGarment = async (req, res) => {
   }
 };
 
-// @desc    Get tutti i capi dell'utente
-// @route   GET /api/garments
-// @access  Private
+/**
+ * @desc    Recupera tutti i capi dell'utente con filtri opzionali
+ * @route   GET /api/garments
+ * @access  Private
+ * @query   category, color, style, page, limit
+ */
 const getUserGarments = async (req, res) => {
   try {
+    // Estrae parametri query per filtri e paginazione
     const {
       category,
       color,
@@ -85,24 +97,28 @@ const getUserGarments = async (req, res) => {
       limit = 20
     } = req.query;
 
-    // Costruisci filtro (senza userId per test)
+    // Costruisce il filtro per la query
+    // TODO: Aggiungere { userId: req.user.id } dopo implementazione autenticazione
     const filter = {};
     
+    // Applica filtri opzionali
     if (category) filter.category = category;
     if (color) filter.primaryColor = color;
     if (style) filter.style = style;
 
-    // Calcola skip per paginazione
+    // Calcola quanti documenti saltare per la paginazione
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Query
+    // Esegue la query con filtri, ordinamento e paginazione
     const garments = await Garment.find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 }) // Più recenti prima
       .limit(parseInt(limit))
       .skip(skip);
 
+    // Conta il totale dei documenti per la paginazione
     const total = await Garment.countDocuments(filter);
 
+    // Risposta con dati e info paginazione
     res.json({
       success: true,
       data: garments,
@@ -114,7 +130,7 @@ const getUserGarments = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Errore get garments:', error);
+    console.error('Errore recupero capi:', error);
     res.status(500).json({
       success: false,
       message: 'Errore nel recupero dei capi',
@@ -123,13 +139,17 @@ const getUserGarments = async (req, res) => {
   }
 };
 
-// @desc    Elimina capo
-// @route   DELETE /api/garments/:id
-// @access  Private
+/**
+ * @desc    Elimina un capo dal guardaroba
+ * @route   DELETE /api/garments/:id
+ * @access  Private
+ */
 const deleteGarment = async (req, res) => {
   try {
+    // Trova il capo per ID
     const garment = await Garment.findById(req.params.id);
 
+    // Verifica esistenza
     if (!garment) {
       return res.status(404).json({
         success: false,
@@ -137,36 +157,41 @@ const deleteGarment = async (req, res) => {
       });
     }
 
-    // Controllo proprietà commentato per test
+    // TODO: Abilitare dopo implementazione autenticazione
+    // Verifica che il capo appartenga all'utente autenticato
     // if (garment.userId.toString() !== req.user.id) {
     //   return res.status(403).json({
     //     success: false,
-    //     message: 'Non autorizzato'
+    //     message: 'Non autorizzato a eliminare questo capo'
     //   });
     // }
 
+    // Elimina il capo dal database
     await garment.deleteOne();
 
-    // Statistiche utente commentate per test
+    // TODO: Abilitare dopo implementazione autenticazione
+    // Aggiorna statistiche utente
     // await User.findByIdAndUpdate(req.user.id, {
     //   $inc: { 'stats.totalGarments': -1 }
     // });
 
+    // Risposta di successo
     res.json({
       success: true,
-      message: 'Capo eliminato'
+      message: 'Capo eliminato con successo'
     });
 
   } catch (error) {
-    console.error('Errore delete:', error);
+    console.error('Errore eliminazione capo:', error);
     res.status(500).json({
       success: false,
-      message: 'Errore nell\'eliminazione',
+      message: 'Errore nell\'eliminazione del capo',
       error: error.message
     });
   }
 };
 
+// Esporta le funzioni del controller
 module.exports = {
   uploadGarment,
   getUserGarments,
