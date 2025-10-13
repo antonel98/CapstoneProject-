@@ -1,188 +1,70 @@
-# Capstoneproject
+# Getting Started with Create React App
 
-Smart Outfit Planner
-- Antofit planner è un outfit planner intelligente che risolve il problema quotidiano di decidere cosa indossare. L'applicazione permette agli utenti di caricare foto dei propri capi d'abbigliamento e genera automaticamente abbinamenti eleganti e appropriati, risparmiando tempo prezioso ogni mattina.
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-- Il Problema che Risolve
+## Available Scripts
 
-Indecisione mattutina: "Non so mai cosa mettermi"
-Sottoutilizzo del guardaroba: "Ho tanti vestiti ma indosso sempre le stesse cose"
-Perdita di tempo: Minuti preziosi sprecati davanti all'armadio
-Mancanza di ispirazione: Difficoltà nel creare nuovi abbinamenti
+In the project directory, you can run:
 
-- La Soluzione
-Un'applicazione web full-stack che:
+### `npm start`
 
-Cataloga digitalmente il guardaroba personale
-Genera automaticamente outfit basati su regole di stile e abbinamenti colori
-Impara dalle preferenze dell'utente
-Pianifica gli outfit per occasioni specifiche
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-🛠️ Tech Stack
-Frontend
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-React per l'interfaccia utente
-CSS3/Styled Components per il design responsivo
-JavaScript ES6+ per la logica client-side
+### `npm test`
 
-Backend
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-Node.js + Express per il server
-MongoDB per il database
-Multer per l'upload delle immagini
-Cloudinary/AWS S3 per lo storage delle foto
+### `npm run build`
 
-Algoritmo di Matching
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-Regole di abbinamento colori (teoria dei colori)
-Compatibilità stili (casual, formale, sportivo)
-Sistema di preferenze utente
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-- Roadmap di Sviluppo
-  
-V1.0 - Core Features (Demo Day - 2 settimane)
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-Upload e categorizzazione capi
+### `npm run eject`
 
-Upload foto con drag & drop
-Categorizzazione automatica (top, bottom, scarpe, accessori)
-Tag per colori e stile
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Generazione outfit automatica
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-Algoritmo base per abbinamenti colore
-Regole di compatibilità stile
-Visualizzazione outfit suggeriti
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
+## Learn More
 
-Sistema di feedback
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-"Mi piace/Non mi piace" per ogni outfit
-Miglioramento suggerimenti basato sui feedback
+To learn React, check out the [React documentation](https://reactjs.org/).
 
+### Code Splitting
 
-Dashboard personale
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-Visualizzazione guardaroba
-Gallery outfit creati
+### Analyzing the Bundle Size
 
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
+### Making a Progressive Web App
 
-V2.0 - Enhanced Features
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-Filtri per occasioni
+### Advanced Configuration
 
-Casual, Lavoro, Sport, Serata, Formale
-Suggerimenti contestuali
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
+### Deployment
 
-Calendario outfit
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-Pianificazione settimanale
-Cronologia outfit indossati
+### `npm run build` fails to minify
 
-
-Gestione avanzata capi
-
-Modifica/eliminazione capi
-Statistiche utilizzo
-
-
-
-V3.0 - Smart Features
-
-Integrazione meteo
-
-Suggerimenti basati sul clima
-Filtri stagionali
-
-
-Machine Learning
-
-Apprendimento preferenze utente
-Suggerimenti sempre più personalizzati
-
-
-Social Features
-
-Condivisione outfit
-Ispirazione dalla community
-
-
-
-User Experience
-User Flow Principale:
-
-Onboarding: Carica i primi capi del guardaroba
-Catalogazione: Organizza automaticamente per categoria e colore
-Generazione: Riceve outfit suggeriti ogni giorno
-Feedback: Migliora i suggerimenti con like/dislike
-Pianificazione: Programma outfit per la settimana
-
-Design Principles:
-
-Minimal & Clean: Focus sui contenuti visuali
-Mobile-First: Uso primario da smartphone
-Visual-Heavy: Le foto dei capi sono protagoniste
-Intuitive: UX semplice e immediata
-
-Features Tecniche Chiave
-
-Algoritmo di Matching
-
-javascript// Esempio logica abbinamento
-const colorHarmony = {
-  complementary: ['blue', 'orange'],
-  analogous: ['red', 'pink', 'purple'],
-  neutral: ['black', 'white', 'gray', 'beige']
-}
-
-const styleCompatibility = {
-  casual: ['jeans', 't-shirt', 'sneakers'],
-  formal: ['suit', 'dress-shirt', 'dress-shoes'],
-  sport: ['tracksuit', 'gym-wear', 'athletic-shoes']
-}
-Database Schema
-javascript// User Model
-{
-  _id: ObjectId,
-  username: String,
-  email: String,
-  preferences: {
-    favoriteColors: [String],
-    preferredStyles: [String]
-  }
-}
-
-// Garment Model  
-{
-  _id: ObjectId,
-  userId: ObjectId,
-  imageUrl: String,
-  category: String, // 'top', 'bottom', 'shoes', 'accessory'
-  color: String,
-  style: String, // 'casual', 'formal', 'sport'
-  season: String,
-  tags: [String]
-}
-
-// Outfit Model
-{
-  _id: ObjectId,
-  userId: ObjectId,
-  garments: [ObjectId],
-  rating: Number, // user feedback
-  occasion: String,
-  createdAt: Date
-}
-
-
-
-Valore Unico
-
-Automazione intelligente: Non solo catalogazione, ma vera creazione automatica di outfit
-Apprendimento continuo: L'app migliora conoscendo le preferenze
-Semplicità d'uso: Un click per ottenere un outfit completo
-Personalizzazione: Ogni suggerimento è basato sui tuoi capi reali
-
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
