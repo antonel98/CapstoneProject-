@@ -8,28 +8,18 @@
 const Garment = require('../models/Garment');
 const User = require('../models/User');
 const path = require('path');
+const fs = require('fs');
 
 /**
- * @desc    Carica un nuovo capo d'abbigliamento nel guardaroba
+ * @desc    Upload nuovo capo d'abbigliamento
  * @route   POST /api/garments
- * @access  Private (richiede autenticazione - da implementare)
+ * @access  Private (richiede autenticazione)
  */
 const uploadGarment = async (req, res) => {
   try {
-    // Estrae i dati dal form
-    const {
-      name,
-      category,
-      subcategory,
-      primaryColor,
-      style,
-      season,
-      occasions,
-      brand,
-      notes
-    } = req.body;
+    // Usa l'ID dell'utente autenticato
+    const userId = req.user.id;
 
-    // Verifica che sia stato caricato un file
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -37,33 +27,22 @@ const uploadGarment = async (req, res) => {
       });
     }
 
-    // Costruisce l'URL dell'immagine caricata
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const { category, color, season, tags } = req.body;
 
-    // Crea il nuovo capo nel database
-    // NOTA: userId temporaneo per sviluppo, sarà sostituito con req.user.id dopo implementazione autenticazione
     const garment = await Garment.create({
-      userId: '507f1f77bcf86cd799439011', // TODO: Sostituire con req.user.id
-      name: name || undefined, // Se non fornito, verrà generato automaticamente dal model
+      userId,
+      imageUrl: `/uploads/${req.file.filename}`,
       category,
-      subcategory,
-      primaryColor,
-      style,
-      imageUrl,
-      cloudinaryId: req.file.filename,
-      season: season ? JSON.parse(season) : [],
-      occasions: occasions ? JSON.parse(occasions) : [],
-      brand,
-      notes
+      color: color || 'unknown',
+      season: season || 'all-season',
+      tags: tags ? tags.split(',').map(tag => tag.trim()) : []
     });
 
-    // TODO: Abilitare dopo implementazione autenticazione
-    // Aggiorna le statistiche dell'utente
-    // await User.findByIdAndUpdate(req.user.id, {
-    //   $inc: { 'stats.totalGarments': 1 }
-    // });
+    // Aggiorna contatore capi utente
+    await User.findByIdAndUpdate(userId, {
+      $inc: { 'stats.totalGarments': 1 }
+    });
 
-    // Risposta di successo
     res.status(201).json({
       success: true,
       message: 'Capo caricato con successo!',
@@ -72,61 +51,37 @@ const uploadGarment = async (req, res) => {
 
   } catch (error) {
     console.error('Errore upload capo:', error);
+    
+    if (req.file) {
+      const filepath = path.join(__dirname, '../../uploads', req.file.filename);
+      if (fs.existsSync(filepath)) {
+        fs.unlinkSync(filepath);
+      }
+    }
+
     res.status(500).json({
       success: false,
-      message: 'Errore nel caricamento del capo',
+      message: 'Errore durante l\'upload del capo',
       error: error.message
     });
   }
 };
 
 /**
- * @desc    Recupera tutti i capi dell'utente con filtri opzionali
+ * @desc    Recupera tutti i capi dell'utente
  * @route   GET /api/garments
  * @access  Private
- * @query   category, color, style, page, limit
  */
-const getUserGarments = async (req, res) => {
+const getGarments = async (req, res) => {
   try {
-    // Estrae parametri query per filtri e paginazione
-    const {
-      category,
-      color,
-      style,
-      page = 1,
-      limit = 20
-    } = req.query;
+    // Filtra solo i capi dell'utente autenticato
+    const userId = req.user.id;
+    const garments = await Garment.find({ userId }).sort({ createdAt: -1 });
 
-    // Costruisce il filtro per la query
-    // TODO: Aggiungere { userId: req.user.id } dopo implementazione autenticazione
-    const filter = {};
-    
-    // Applica filtri opzionali
-    if (category) filter.category = category;
-    if (color) filter.primaryColor = color;
-    if (style) filter.style = style;
-
-    // Calcola quanti documenti saltare per la paginazione
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    // Esegue la query con filtri, ordinamento e paginazione
-    const garments = await Garment.find(filter)
-      .sort({ createdAt: -1 }) // Più recenti prima
-      .limit(parseInt(limit))
-      .skip(skip);
-
-    // Conta il totale dei documenti per la paginazione
-    const total = await Garment.countDocuments(filter);
-
-    // Risposta con dati e info paginazione
     res.json({
       success: true,
-      data: garments,
-      pagination: {
-        current: parseInt(page),
-        pages: Math.ceil(total / parseInt(limit)),
-        total
-      }
+      count: garments.length,
+      data: garments
     });
 
   } catch (error) {
@@ -140,16 +95,15 @@ const getUserGarments = async (req, res) => {
 };
 
 /**
- * @desc    Elimina un capo dal guardaroba
+ * @desc    Elimina un capo
  * @route   DELETE /api/garments/:id
  * @access  Private
  */
 const deleteGarment = async (req, res) => {
   try {
-    // Trova il capo per ID
+    const userId = req.user.id;
     const garment = await Garment.findById(req.params.id);
 
-    // Verifica esistenza
     if (!garment) {
       return res.status(404).json({
         success: false,
@@ -157,25 +111,27 @@ const deleteGarment = async (req, res) => {
       });
     }
 
-    // TODO: Abilitare dopo implementazione autenticazione
-    // Verifica che il capo appartenga all'utente autenticato
-    // if (garment.userId.toString() !== req.user.id) {
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: 'Non autorizzato a eliminare questo capo'
-    //   });
-    // }
+    // Verifica che il capo appartenga all'utente
+    if (garment.userId.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Non autorizzato a eliminare questo capo'
+      });
+    }
 
-    // Elimina il capo dal database
-    await garment.deleteOne();
+    // Elimina file fisico
+    const filepath = path.join(__dirname, '../../uploads', path.basename(garment.imageUrl));
+    if (fs.existsSync(filepath)) {
+      fs.unlinkSync(filepath);
+    }
 
-    // TODO: Abilitare dopo implementazione autenticazione
-    // Aggiorna statistiche utente
-    // await User.findByIdAndUpdate(req.user.id, {
-    //   $inc: { 'stats.totalGarments': -1 }
-    // });
+    await Garment.findByIdAndDelete(req.params.id);
 
-    // Risposta di successo
+    // Aggiorna contatore capi utente
+    await User.findByIdAndUpdate(userId, {
+      $inc: { 'stats.totalGarments': -1 }
+    });
+
     res.json({
       success: true,
       message: 'Capo eliminato con successo'
@@ -185,15 +141,60 @@ const deleteGarment = async (req, res) => {
     console.error('Errore eliminazione capo:', error);
     res.status(500).json({
       success: false,
-      message: 'Errore nell\'eliminazione del capo',
+      message: 'Errore durante l\'eliminazione del capo',
       error: error.message
     });
   }
 };
 
-// Esporta le funzioni del controller
+/**
+ * @desc    Toggle preferito su un capo
+ * @route   PATCH /api/garments/:id/favorite
+ * @access  Private
+ */
+const toggleFavorite = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const garment = await Garment.findById(req.params.id);
+
+    if (!garment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Capo non trovato'
+      });
+    }
+
+    // Verifica che il capo appartenga all'utente
+    if (garment.userId.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Non autorizzato a modificare questo capo'
+      });
+    }
+
+    // Toggle preferito
+    garment.isFavorite = !garment.isFavorite;
+    await garment.save();
+
+    res.json({
+      success: true,
+      message: garment.isFavorite ? 'Aggiunto ai preferiti!' : 'Rimosso dai preferiti',
+      data: garment
+    });
+
+  } catch (error) {
+    console.error('Errore toggle preferito:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Errore durante l\'aggiornamento',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   uploadGarment,
-  getUserGarments,
-  deleteGarment
+  getGarments,
+  deleteGarment,
+  toggleFavorite
 };

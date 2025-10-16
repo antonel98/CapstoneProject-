@@ -1,35 +1,62 @@
-const express = require('express');
-const router = express.Router();  // ← Questa riga era mancante!
+// server/routes/garments.js
 
-// Import controllers
-const {
-  uploadGarment,
-  getUserGarments,
-  deleteGarment
+const express = require('express');
+const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+
+// Import controller
+const { 
+  uploadGarment, 
+  getGarments, 
+  deleteGarment,
+  toggleFavorite
 } = require('../controllers/garmentController');
 
-// Import middleware
-const { upload, handleUploadError, validateUpload } = require('../middleware/upload');
+// Import middleware autenticazione
 const { protect } = require('../middleware/auth');
 
-// @route   POST /api/garments
-// @desc    Upload nuovo capo
-// @access  Private
-router.post('/', 
-  upload,
-  handleUploadError,
-  validateUpload,
-  uploadGarment
-);
+// Configurazione multer per upload
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'garment-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
 
-// @route   GET /api/garments
-// @desc    Get tutti i capi dell'utente
-// @access  Private
-router.get('/' , getUserGarments);
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Solo immagini sono permesse (jpeg, jpg, png, gif, webp)'));
+    }
+  }
+});
 
-// @route   DELETE /api/garments/:id
-// @desc    Elimina capo
-// @access  Private
-router.delete('/:id', deleteGarment);
+/**
+ * Tutte le routes sono protette - richiedono autenticazione
+ */
+
+// POST /api/garments - Upload nuovo capo
+router.post('/', protect, upload.single('image'), uploadGarment);
+
+// GET /api/garments - Recupera tutti i capi dell'utente
+router.get('/', protect, getGarments);
+
+// DELETE /api/garments/:id - Elimina un capo
+router.delete('/:id', protect, deleteGarment);
+
+// PATCH /api/garments/:id/favorite - Toggle preferito
+router.patch('/:id/favorite', protect, toggleFavorite);
 
 module.exports = router;

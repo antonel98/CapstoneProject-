@@ -1,258 +1,509 @@
 // client/src/components/WardrobeGallery.jsx
+
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import Toast from './Toast';
+import Modal from './Modal';
+import Loading from './Loading';
 
 function WardrobeGallery() {
   const [garments, setGarments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({
-    category: '',
-    color: '',
-    style: ''
+  const [filter, setFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
+  
+  // Toast state
+  const [toast, setToast] = useState({ message: '', type: '' });
+  
+  // Modal state
+  const [modal, setModal] = useState({
+    isOpen: false,
+    garmentId: null,
+    garmentName: ''
   });
 
   useEffect(() => {
     fetchGarments();
-  }, [filter]);
+  }, []);
 
   const fetchGarments = async () => {
     try {
-      const params = new URLSearchParams();
-      if (filter.category) params.append('category', filter.category);
-      if (filter.color) params.append('color', filter.color);
-      if (filter.style) params.append('style', filter.style);
-
-      const response = await axios.get(`http://localhost:5000/api/garments?${params}`);
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:5000/api/garments', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
       setGarments(response.data.data);
+      setLoading(false);
     } catch (error) {
-      console.error('Errore nel caricamento:', error);
-    } finally {
+      console.error('Errore caricamento guardaroba:', error);
+      setToast({ 
+        message: 'Errore nel caricamento del guardaroba', 
+        type: 'error' 
+      });
       setLoading(false);
     }
   };
 
-  const handleFilterChange = (e) => {
-    setFilter({
-      ...filter,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const deleteGarment = async (id) => {
-    if (window.confirm('Sei sicuro di voler eliminare questo capo?')) {
-      try {
-        await axios.delete(`http://localhost:5000/api/garments/${id}`);
-        setGarments(garments.filter(g => g._id !== id));
-      } catch (error) {
-        console.error('Errore nell\'eliminazione:', error);
-      }
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/api/garments/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      setToast({ message: 'Capo eliminato con successo! 🗑️', type: 'success' });
+      fetchGarments();
+      
+    } catch (error) {
+      console.error('Errore eliminazione:', error);
+      setToast({ 
+        message: 'Errore durante l\'eliminazione', 
+        type: 'error' 
+      });
     }
   };
 
-  if (loading) return (
-    <div style={{ 
-      textAlign: 'center', 
-      padding: '50px',
-      color: '#2C3E50',
-      fontSize: '1.2rem'
-    }}>
-      Caricamento guardaroba...
-    </div>
-  );
+  const handleToggleFavorite = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.patch(`http://localhost:5000/api/garments/${id}/favorite`, {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const wasFavorite = response.data.data.isFavorite;
+      setToast({ 
+        message: wasFavorite ? 'Aggiunto ai preferiti! ⭐' : 'Rimosso dai preferiti', 
+        type: 'success' 
+      });
+      
+      fetchGarments();
+    } catch (error) {
+      console.error('Errore toggle preferito:', error);
+      setToast({ 
+        message: 'Errore durante l\'aggiornamento', 
+        type: 'error' 
+      });
+    }
+  };
+
+  const openDeleteModal = (id, name) => {
+    setModal({
+      isOpen: true,
+      garmentId: id,
+      garmentName: name
+    });
+  };
+
+  const closeModal = () => {
+    setModal({
+      isOpen: false,
+      garmentId: null,
+      garmentName: ''
+    });
+  };
+
+  const confirmDelete = () => {
+    if (modal.garmentId) {
+      handleDelete(modal.garmentId);
+    }
+  };
+
+  // Filtra e ordina capi
+  let filteredGarments = garments;
+
+  if (filter !== 'all') {
+    filteredGarments = filteredGarments.filter(g => g.category === filter);
+  }
+
+  if (showOnlyFavorites) {
+    filteredGarments = filteredGarments.filter(g => g.isFavorite);
+  }
+
+  if (searchTerm) {
+    filteredGarments = filteredGarments.filter(g => 
+      g.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      g.color?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      g.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }
+
+  if (sortBy === 'newest') {
+    filteredGarments = [...filteredGarments].sort((a, b) => 
+      new Date(b.createdAt) - new Date(a.createdAt)
+    );
+  } else if (sortBy === 'oldest') {
+    filteredGarments = [...filteredGarments].sort((a, b) => 
+      new Date(a.createdAt) - new Date(b.createdAt)
+    );
+  } else if (sortBy === 'favorites') {
+    filteredGarments = [...filteredGarments].sort((a, b) => 
+      (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0)
+    );
+  }
+
+  const categoryIcons = {
+    top: '👕',
+    bottom: '👖',
+    dress: '👗',
+    outerwear: '🧥',
+    shoes: '👟',
+    accessories: '👜',
+    bag: '👝',
+    jewelry: '💍'
+  };
+
+  const categoryNames = {
+    all: 'Tutti',
+    top: 'Top',
+    bottom: 'Bottom',
+    dress: 'Vestiti',
+    outerwear: 'Capospalla',
+    shoes: 'Scarpe',
+    accessories: 'Accessori',
+    bag: 'Borse',
+    jewelry: 'Gioielli'
+  };
+
+  if (loading) {
+    return <Loading message="Caricamento guardaroba..." fullScreen />;
+  }
 
   return (
-    <div className="page-container">
-      <div style={{ 
-        textAlign: 'center', 
-        marginBottom: '30px' 
+    <div style={{ padding: '40px 20px', maxWidth: '1400px', margin: '0 auto' }}>
+      {/* Toast Notifications */}
+      <Toast 
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ message: '', type: '' })}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={closeModal}
+        onConfirm={confirmDelete}
+        title="Elimina Capo"
+        message={`Sei sicuro di voler eliminare questo capo? L'azione non può essere annullata.`}
+        confirmText="Elimina"
+        cancelText="Annulla"
+        type="danger"
+      />
+
+      <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#2C3E50' }}>
+        👔 Il Tuo Guardaroba ({filteredGarments.length} capi)
+      </h2>
+
+      {/* Barra di ricerca e filtri */}
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(248, 187, 217, 0.1), rgba(176, 224, 230, 0.1))',
+        padding: '20px',
+        borderRadius: '15px',
+        marginBottom: '30px',
+        border: '2px solid rgba(248, 187, 217, 0.3)'
       }}>
-        <h2 style={{ 
-          fontSize: '2rem',
-          marginBottom: '10px',
-          background: 'linear-gradient(45deg, #F8BBD9, #B0E0E6)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text'
-        }}>
-          Il Mio Guardaroba
-        </h2>
-        <p style={{ 
-          color: '#495057',
-          fontSize: '1.1rem'
-        }}>
-          {garments.length} capi nella tua collezione
-        </p>
-      </div>
-      
-      {/* Filtri */}
-      <div className="filter-section">
-        <h3 style={{ 
-          marginBottom: '20px',
-          color: '#2C3E50',
-          fontSize: '1.2rem'
-        }}>
-          Filtra i tuoi capi
-        </h3>
+        <div style={{ marginBottom: '15px' }}>
+          <input
+            type="text"
+            placeholder="🔍 Cerca per categoria, colore o tag..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 20px',
+              borderRadius: '25px',
+              border: '2px solid #F8BBD9',
+              fontSize: '16px',
+              outline: 'none',
+              transition: 'border-color 0.3s'
+            }}
+            onFocus={(e) => e.target.style.borderColor = '#B0E0E6'}
+            onBlur={(e) => e.target.style.borderColor = '#F8BBD9'}
+          />
+        </div>
+
         <div style={{ 
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '15px'
+          display: 'flex', 
+          gap: '15px', 
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between'
         }}>
-          <select 
-            name="category" 
-            value={filter.category} 
-            onChange={handleFilterChange}
-            className="form-control"
-          >
-            <option value="">Tutte le categorie</option>
-            <option value="top">Top</option>
-            <option value="bottom">Bottom</option>
-            <option value="dress">Dress</option>
-            <option value="shoes">Shoes</option>
-            <option value="outerwear">Outerwear</option>
-            <option value="accessory">Accessory</option>
-          </select>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
+              style={{
+                padding: '8px 16px',
+                background: showOnlyFavorites 
+                  ? 'linear-gradient(45deg, #F8BBD9, #B0E0E6)' 
+                  : 'white',
+                border: '2px solid #F8BBD9',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '14px',
+                color: '#2C3E50',
+                transition: 'transform 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+            >
+              ⭐ {showOnlyFavorites ? 'Tutti' : 'Solo Preferiti'}
+            </button>
 
-          <select 
-            name="color" 
-            value={filter.color} 
-            onChange={handleFilterChange}
-            className="form-control"
-          >
-            <option value="">Tutti i colori</option>
-            <option value="black">Black</option>
-            <option value="white">White</option>
-            <option value="blue">Blue</option>
-            <option value="red">Red</option>
-            <option value="green">Green</option>
-            <option value="pink">Pink</option>
-            <option value="gray">Gray</option>
-          </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{
+                padding: '8px 16px',
+                border: '2px solid #F8BBD9',
+                borderRadius: '20px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#2C3E50',
+                cursor: 'pointer',
+                outline: 'none',
+                transition: 'border-color 0.3s'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#B0E0E6'}
+              onBlur={(e) => e.target.style.borderColor = '#F8BBD9'}
+            >
+              <option value="newest">📅 Più recenti</option>
+              <option value="oldest">📅 Più vecchi</option>
+              <option value="favorites">⭐ Preferiti prima</option>
+            </select>
+          </div>
 
-          <select 
-            name="style" 
-            value={filter.style} 
-            onChange={handleFilterChange}
-            className="form-control"
-          >
-            <option value="">Tutti gli stili</option>
-            <option value="casual">Casual</option>
-            <option value="formal">Formal</option>
-            <option value="sport">Sport</option>
-            <option value="business">Business</option>
-            <option value="party">Party</option>
-          </select>
+          <div style={{ fontSize: '14px', color: '#6c757d', fontWeight: '600' }}>
+            {filteredGarments.length} di {garments.length} capi
+          </div>
         </div>
       </div>
 
-      {/* Grid dei capi */}
-      {garments.length === 0 ? (
+      {/* Filtri categorie */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        gap: '15px', 
+        marginBottom: '40px',
+        flexWrap: 'wrap'
+      }}>
+        {['all', 'top', 'bottom', 'dress', 'outerwear', 'shoes', 'accessories', 'bag', 'jewelry'].map(cat => (
+          <button
+            key={cat}
+            onClick={() => setFilter(cat)}
+            style={{
+              padding: '10px 20px',
+              background: filter === cat 
+                ? 'linear-gradient(45deg, #F8BBD9, #B0E0E6)' 
+                : 'white',
+              color: '#2C3E50',
+              border: '2px solid #F8BBD9',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              transition: 'all 0.3s',
+              transform: filter === cat ? 'scale(1.05)' : 'scale(1)'
+            }}
+            onMouseEnter={(e) => {
+              if (filter !== cat) e.target.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = filter === cat ? 'scale(1.05)' : 'scale(1)';
+            }}
+          >
+            {cat === 'all' ? '🌟 Tutti' : `${categoryIcons[cat]} ${categoryNames[cat]}`}
+          </button>
+        ))}
+      </div>
+
+      {/* Galleria */}
+      {filteredGarments.length === 0 ? (
         <div style={{ 
           textAlign: 'center', 
           padding: '60px',
-          background: 'linear-gradient(45deg, rgba(248, 187, 217, 0.1), rgba(176, 224, 230, 0.1))',
+          background: 'linear-gradient(135deg, rgba(248, 187, 217, 0.1), rgba(176, 224, 230, 0.1))',
           borderRadius: '20px',
-          border: '1px solid rgba(248, 187, 217, 0.3)'
+          border: '2px dashed #F8BBD9'
         }}>
-          <p style={{ 
-            fontSize: '1.2rem',
-            color: '#495057',
-            marginBottom: '20px'
-          }}>
-            Nessun capo trovato
-          </p>
-          <p style={{ color: '#6c757d' }}>
-            Carica il tuo primo capo per iniziare!
+          <p style={{ fontSize: '3rem', marginBottom: '20px' }}>👗</p>
+          <p style={{ fontSize: '1.2rem', color: '#2C3E50' }}>
+            {searchTerm 
+              ? `Nessun capo trovato per "${searchTerm}"` 
+              : filter === 'all' && !showOnlyFavorites
+                ? 'Nessun capo nel guardaroba. Inizia a caricare i tuoi vestiti!' 
+                : showOnlyFavorites
+                  ? 'Nessun preferito ancora. Aggiungi una stella ai tuoi capi preferiti!'
+                  : `Nessun ${categoryNames[filter]} trovato`}
           </p>
         </div>
       ) : (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
-          gap: '25px' 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+          gap: '25px'
         }}>
-          {garments.map(garment => (
-            <div 
-              key={garment._id} 
-              className="card"
+          {filteredGarments.map(garment => (
+            <div
+              key={garment._id}
               style={{
-                transition: 'all 0.3s ease',
-                cursor: 'pointer'
+                background: 'white',
+                borderRadius: '15px',
+                overflow: 'hidden',
+                boxShadow: garment.isFavorite 
+                  ? '0 6px 12px rgba(248, 187, 217, 0.4)'
+                  : '0 4px 6px rgba(0,0,0,0.1)',
+                transition: 'transform 0.3s, box-shadow 0.3s',
+                cursor: 'pointer',
+                border: garment.isFavorite ? '3px solid #F8BBD9' : 'none'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-5px)';
+                e.currentTarget.style.boxShadow = '0 8px 12px rgba(0,0,0,0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = garment.isFavorite 
+                  ? '0 6px 12px rgba(248, 187, 217, 0.4)'
+                  : '0 4px 6px rgba(0,0,0,0.1)';
               }}
             >
-              {/* Immagine */}
-              <div style={{ 
-                height: '220px', 
-                overflow: 'hidden',
-                background: 'linear-gradient(45deg, rgba(248, 187, 217, 0.1), rgba(176, 224, 230, 0.1))'
-              }}>
-                <img 
+              <div style={{ position: 'relative' }}>
+                <img
                   src={`http://localhost:5000${garment.imageUrl}`}
-                  alt={garment.name}
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover',
-                    transition: 'transform 0.3s ease'
+                  alt={garment.category}
+                  style={{
+                    width: '100%',
+                    height: '250px',
+                    objectFit: 'cover'
                   }}
-                  onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-                  onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                 />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleFavorite(garment._id);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '40px',
+                    height: '40px',
+                    cursor: 'pointer',
+                    fontSize: '1.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    transition: 'transform 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = 'scale(1.1) rotate(10deg)'}
+                  onMouseLeave={(e) => e.target.style.transform = 'scale(1) rotate(0deg)'}
+                >
+                  {garment.isFavorite ? '⭐' : '☆'}
+                </button>
               </div>
-              
-              {/* Info capo */}
-              <div style={{ padding: '20px' }}>
-                <h3 style={{ 
-                  margin: '0 0 12px 0', 
-                  fontSize: '1.1rem',
-                  color: '#2C3E50',
-                  fontWeight: '600'
-                }}>
-                  {garment.name}
-                </h3>
-                
+
+              <div style={{ padding: '15px' }}>
                 <div style={{ 
-                  fontSize: '14px', 
-                  color: '#6c757d', 
-                  marginBottom: '15px',
-                  lineHeight: '1.6'
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  marginBottom: '10px'
                 }}>
-                  <div style={{ marginBottom: '5px' }}>
-                    <span style={{ fontWeight: '600' }}>Categoria:</span> {garment.category}
-                  </div>
-                  <div style={{ marginBottom: '5px' }}>
-                    <span style={{ fontWeight: '600' }}>Colore:</span> {garment.primaryColor}
-                  </div>
-                  <div>
-                    <span style={{ fontWeight: '600' }}>Stile:</span> {garment.style}
-                  </div>
+                  <span style={{ 
+                    fontSize: '1.5rem',
+                    background: 'linear-gradient(45deg, #F8BBD9, #B0E0E6)',
+                    padding: '5px 10px',
+                    borderRadius: '10px'
+                  }}>
+                    {categoryIcons[garment.category]}
+                  </span>
+                  <button
+                    onClick={() => openDeleteModal(garment._id, categoryNames[garment.category])}
+                    style={{
+                      background: 'rgba(248, 187, 217, 0.3)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '35px',
+                      height: '35px',
+                      cursor: 'pointer',
+                      fontSize: '1.2rem',
+                      transition: 'all 0.3s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#F8BBD9';
+                      e.target.style.transform = 'scale(1.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'rgba(248, 187, 217, 0.3)';
+                      e.target.style.transform = 'scale(1)';
+                    }}
+                  >
+                    🗑️
+                  </button>
                 </div>
                 
-                {/* Azioni */}
-                <button
-                  onClick={() => deleteGarment(garment._id)}
-                  style={{
-                    padding: '8px 16px',
-                    background: 'linear-gradient(45deg, #F8BBD9, #B0E0E6)',
-                    color: '#2C3E50',
-                    border: 'none',
-                    borderRadius: '20px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = 'translateY(-2px)';
-                    e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                >
-                  Elimina
-                </button>
+                <p style={{ 
+                  fontWeight: '600', 
+                  color: '#2C3E50',
+                  textTransform: 'capitalize',
+                  marginBottom: '8px'
+                }}>
+                  {categoryNames[garment.category]}
+                </p>
+                
+                {garment.color && (
+                  <p style={{ 
+                    fontSize: '0.9rem', 
+                    color: '#6c757d',
+                    textTransform: 'capitalize'
+                  }}>
+                    Colore: {garment.color}
+                  </p>
+                )}
+                
+                {garment.season && (
+                  <p style={{ 
+                    fontSize: '0.9rem', 
+                    color: '#6c757d',
+                    textTransform: 'capitalize'
+                  }}>
+                    Stagione: {garment.season}
+                  </p>
+                )}
+                
+                {garment.tags && garment.tags.length > 0 && (
+                  <div style={{ marginTop: '10px' }}>
+                    {garment.tags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        style={{
+                          display: 'inline-block',
+                          background: 'rgba(176, 224, 230, 0.3)',
+                          padding: '3px 8px',
+                          borderRadius: '10px',
+                          fontSize: '0.75rem',
+                          marginRight: '5px',
+                          marginTop: '5px'
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}

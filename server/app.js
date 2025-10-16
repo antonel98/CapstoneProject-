@@ -29,6 +29,7 @@ mongoose.connection.on('error', (err) => {
 app.use('/api/garments', require('./routes/garments'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/outfits', require('./routes/outfits'));
+app.use('/api/stats', require('./routes/stats'));
 
 // Test route
 app.get('/api/test', (req, res) => {

@@ -7,288 +7,275 @@
  * basandosi su regole di compatibilità colori e stili.
  * 
  * Principi di Design:
- * - Compatibilità colori basata su teoria del colore
- * - Matching stili per coerenza estetica
- * - Sistema di scoring per ranking outfit
- * - Supporto per diverse occasioni d'uso
+ * - Compatibilità colori (teoria del colore)
+ * - Balance dell'outfit (non troppi colori accesi)
+ * - Flessibilità: dress completo, oppure top+bottom, oppure combinazioni creative
  */
-
-// ============================================
-// REGOLE DI COMPATIBILITÀ COLORI
-// ============================================
 
 /**
  * Matrice di compatibilità colori
- * Definisce quali colori si abbinano bene tra loro
- * Basato su principi di teoria del colore e fashion styling
+ * Score da 0 (pessimo) a 100 (perfetto)
  */
 const colorCompatibility = {
-  // Colori neutri - si abbinano con quasi tutto
-  black: ['white', 'gray', 'red', 'blue', 'green', 'yellow', 'pink', 'purple'],
-  white: ['black', 'gray', 'blue', 'red', 'green', 'brown', 'navy', 'pink'],
-  gray: ['black', 'white', 'blue', 'red', 'yellow', 'pink', 'purple'],
-  
-  // Colori freddi
-  blue: ['white', 'gray', 'black', 'brown', 'beige', 'yellow'],
-  navy: ['white', 'beige', 'gray'],
-  purple: ['black', 'white', 'gray'],
-  
-  // Colori caldi
-  red: ['black', 'white', 'gray', 'beige'],
-  pink: ['black', 'white', 'gray', 'blue'],
-  yellow: ['black', 'gray', 'blue', 'brown'],
-  orange: ['black', 'white', 'brown', 'beige'],
-  
-  // Colori naturali
-  brown: ['white', 'beige', 'blue', 'green', 'yellow'],
-  beige: ['brown', 'white', 'blue', 'red', 'green'],
-  green: ['black', 'white', 'brown', 'beige'],
-  
-  cream: ['brown', 'beige', 'blue']
+  black: { black: 70, white: 100, gray: 90, brown: 60, beige: 85, red: 80, pink: 75, orange: 60, yellow: 65, green: 70, blue: 85, purple: 80, navy: 95, cream: 90 },
+  white: { black: 100, white: 70, gray: 90, brown: 80, beige: 95, red: 85, pink: 90, orange: 85, yellow: 90, green: 85, blue: 95, purple: 85, navy: 95, cream: 85 },
+  gray: { black: 90, white: 90, gray: 80, brown: 70, beige: 85, red: 75, pink: 80, orange: 65, yellow: 70, green: 75, blue: 90, purple: 85, navy: 90, cream: 85 },
+  brown: { black: 60, white: 80, gray: 70, brown: 75, beige: 95, red: 65, pink: 70, orange: 80, yellow: 75, green: 85, blue: 70, purple: 60, navy: 65, cream: 90 },
+  beige: { black: 85, white: 95, gray: 85, brown: 95, beige: 80, red: 70, pink: 85, orange: 85, yellow: 80, green: 80, blue: 85, purple: 75, navy: 80, cream: 95 },
+  red: { black: 80, white: 85, gray: 75, brown: 65, beige: 70, red: 60, pink: 65, orange: 50, yellow: 55, green: 45, blue: 70, purple: 65, navy: 80, cream: 75 },
+  pink: { black: 75, white: 90, gray: 80, brown: 70, beige: 85, red: 65, pink: 70, orange: 70, yellow: 75, green: 60, blue: 80, purple: 85, navy: 75, cream: 90 },
+  orange: { black: 60, white: 85, gray: 65, brown: 80, beige: 85, red: 50, pink: 70, orange: 60, yellow: 85, green: 55, blue: 70, purple: 60, navy: 65, cream: 85 },
+  yellow: { black: 65, white: 90, gray: 70, brown: 75, beige: 80, red: 55, pink: 75, orange: 85, yellow: 60, green: 70, blue: 75, purple: 65, navy: 70, cream: 85 },
+  green: { black: 70, white: 85, gray: 75, brown: 85, beige: 80, red: 45, pink: 60, orange: 55, yellow: 70, green: 75, blue: 70, purple: 65, navy: 75, cream: 80 },
+  blue: { black: 85, white: 95, gray: 90, brown: 70, beige: 85, red: 70, pink: 80, orange: 70, yellow: 75, green: 70, blue: 80, purple: 85, navy: 90, cream: 90 },
+  purple: { black: 80, white: 85, gray: 85, brown: 60, beige: 75, red: 65, pink: 85, orange: 60, yellow: 65, green: 65, blue: 85, purple: 70, navy: 80, cream: 80 },
+  navy: { black: 95, white: 95, gray: 90, brown: 65, beige: 80, red: 80, pink: 75, orange: 65, yellow: 70, green: 75, blue: 90, purple: 80, navy: 85, cream: 85 },
+  cream: { black: 90, white: 85, gray: 85, brown: 90, beige: 95, red: 75, pink: 90, orange: 85, yellow: 85, green: 80, blue: 90, purple: 80, navy: 85, cream: 80 },
+  unknown: { black: 60, white: 60, gray: 60, brown: 60, beige: 60, red: 60, pink: 60, orange: 60, yellow: 60, green: 60, blue: 60, purple: 60, navy: 60, cream: 60 }
 };
 
 /**
- * Matrice di compatibilità stili
- * Definisce quali stili possono essere combinati insieme
+ * Calcola lo score di compatibilità tra due colori
  */
-const styleCompatibility = {
-  casual: ['casual', 'sport'],
-  formal: ['formal', 'business'],
-  sport: ['sport', 'casual'],
-  business: ['business', 'formal'],
-  party: ['party', 'formal'],
-  vintage: ['vintage', 'casual'],
-  street: ['street', 'casual'],
-  bohemian: ['bohemian', 'casual'],
-  minimalist: ['minimalist', 'casual', 'formal']
-};
-
-// ============================================
-// FUNZIONI DI COMPATIBILITÀ
-// ============================================
+function getColorScore(color1, color2) {
+  const c1 = color1 || 'unknown';
+  const c2 = color2 || 'unknown';
+  return colorCompatibility[c1]?.[c2] || 50;
+}
 
 /**
- * Verifica se due colori sono compatibili
- * @param {string} color1 - Primo colore
- * @param {string} color2 - Secondo colore
- * @returns {boolean} True se i colori sono compatibili
+ * Calcola lo score complessivo di un outfit
  */
-const areColorsCompatible = (color1, color2) => {
-  // Stesso colore è sempre compatibile
-  if (color1 === color2) return true;
-  
-  // Verifica nella matrice di compatibilità
-  return colorCompatibility[color1]?.includes(color2) || false;
-};
+function calculateOutfitScore(items) {
+  if (items.length === 0) return 0;
+  if (items.length === 1) return 100; // Un singolo item è sempre perfetto
 
-/**
- * Verifica se due stili sono compatibili
- * @param {string} style1 - Primo stile
- * @param {string} style2 - Secondo stile
- * @returns {boolean} True se gli stili sono compatibili
- */
-const areStylesCompatible = (style1, style2) => {
-  // Stesso stile è sempre compatibile
-  if (style1 === style2) return true;
-  
-  // Verifica nella matrice di compatibilità
-  return styleCompatibility[style1]?.includes(style2) || false;
-};
+  let totalScore = 0;
+  let comparisons = 0;
 
-// ============================================
-// SISTEMA DI SCORING
-// ============================================
-
-/**
- * Calcola il punteggio di compatibilità di un outfit
- * Il punteggio va da 0 a 100, dove 100 è perfetto
- * 
- * Fattori considerati:
- * - Compatibilità colori (peso maggiore)
- * - Compatibilità stili
- * - Presenza di colori neutri (più versatili)
- * - Stessi colori/stili (massima coerenza)
- * 
- * @param {Object} top - Capo superiore
- * @param {Object} bottom - Capo inferiore (null se dress)
- * @param {Object} shoes - Scarpe
- * @returns {number} Punteggio da 0 a 100
- */
-const calculateOutfitScore = (top, bottom, shoes) => {
-  let score = 50; // Punteggio base
-  
-  // ===== COMPATIBILITÀ COLORI =====
-  
-  // Bonus per abbinamento top-bottom (se presente)
-  if (top && bottom) {
-    // Stesso colore = massima coerenza
-    if (top.primaryColor === bottom.primaryColor) {
-      score += 10;
-    }
-    // Colori compatibili
-    else if (areColorsCompatible(top.primaryColor, bottom.primaryColor)) {
-      score += 5;
+  // Confronta ogni coppia di items
+  for (let i = 0; i < items.length; i++) {
+    for (let j = i + 1; j < items.length; j++) {
+      totalScore += getColorScore(items[i].color, items[j].color);
+      comparisons++;
     }
   }
-  
-  // Bonus per abbinamento con scarpe
-  if (shoes && top) {
-    if (areColorsCompatible(top.primaryColor, shoes.primaryColor)) {
-      score += 10;
-    }
-  }
-  
-  // ===== COMPATIBILITÀ STILI =====
-  
-  // Bonus per stili coerenti
-  if (top && bottom) {
-    if (top.style === bottom.style) {
-      score += 15; // Stesso stile = massima coerenza
-    } else if (areStylesCompatible(top.style, bottom.style)) {
-      score += 8; // Stili compatibili
-    }
-  }
-  
-  if (top && shoes) {
-    if (areStylesCompatible(top.style, shoes.style)) {
-      score += 10;
-    }
-  }
-  
-  // ===== BONUS VERSATILITÀ =====
-  
-  // Colori neutri sono più versatili e facili da abbinare
-  const neutralColors = ['black', 'white', 'gray', 'beige'];
-  
-  if (top && neutralColors.includes(top.primaryColor)) score += 5;
-  if (bottom && neutralColors.includes(bottom.primaryColor)) score += 5;
-  
-  // Assicura che il punteggio non superi 100
-  return Math.min(score, 100);
-};
 
-// ============================================
-// GENERAZIONE OUTFIT
-// ============================================
+  // Bonus per outfit completi
+  const categories = items.map(item => item.category);
+  const hasDress = categories.includes('dress');
+  const hasTop = categories.includes('top');
+  const hasBottom = categories.includes('bottom');
+  const hasShoes = categories.includes('shoes');
+  const hasOuterwear = categories.includes('outerwear');
+  const hasAccessories = categories.includes('accessories') || categories.includes('bag') || categories.includes('jewelry');
+
+  let bonus = 0;
+  
+  // Bonus per outfit completi
+  if (hasDress && hasShoes) bonus += 10;
+  if (hasTop && hasBottom) bonus += 10;
+  if (hasShoes) bonus += 5;
+  if (hasOuterwear) bonus += 5;
+  if (hasAccessories) bonus += 3;
+
+  const avgScore = comparisons > 0 ? totalScore / comparisons : 100;
+  return Math.min(100, Math.round(avgScore + bonus));
+}
 
 /**
- * Genera outfit automatici da una collezione di capi
- * 
- * Algoritmo:
- * 1. Separa i capi per categoria
- * 2. Genera tutte le combinazioni possibili (top+bottom+shoes o dress+shoes)
- * 3. Filtra solo le combinazioni compatibili
- * 4. Calcola score per ogni outfit
- * 5. Ordina per score e restituisce i migliori 6
- * 
- * @param {Array} garments - Array di capi d'abbigliamento
- * @returns {Array} Array di outfit ordinati per score
+ * Genera un motivo descrittivo per l'outfit
  */
-const generateOutfits = (garments) => {
+function generateReason(items, score) {
+  const colors = [...new Set(items.map(item => item.color).filter(c => c && c !== 'unknown'))];
+  const categories = items.map(item => item.category);
+  
+  const hasDress = categories.includes('dress');
+  const hasTop = categories.includes('top');
+  const hasBottom = categories.includes('bottom');
+  
+  if (score >= 85) {
+    if (hasDress) {
+      return `Vestito elegante con abbinamenti perfetti. I colori ${colors.join(', ')} creano un look armonioso e raffinato!`;
+    }
+    return `Combinazione eccellente! I colori ${colors.join(', ')} si complementano perfettamente per un look impeccabile.`;
+  } else if (score >= 70) {
+    if (hasDress) {
+      return `Vestito versatile con buoni abbinamenti. Un look bilanciato e piacevole.`;
+    }
+    return `Buon abbinamento di ${colors.join(' e ')}. Un outfit equilibrato e gradevole.`;
+  } else {
+    if (hasDress) {
+      return `Look audace e creativo. Un vestito che non passa inosservato!`;
+    }
+    return `Combinazione interessante e originale. Perfetto per chi ama osare!`;
+  }
+}
+
+/**
+ * Genera outfit automatici
+ * Supporta:
+ * - Dress + shoes/accessories
+ * - Top + Bottom + shoes/accessories
+ * - Mix creativi con almeno 2 items
+ */
+function generateOutfits(garments, count = 5, occasion = null) {
   const outfits = [];
-  
-  // ===== STEP 1: SEPARAZIONE PER CATEGORIA =====
-  const tops = garments.filter(g => g.category === 'top');
-  const bottoms = garments.filter(g => g.category === 'bottom');
-  const dresses = garments.filter(g => g.category === 'dress');
-  const shoes = garments.filter(g => g.category === 'shoes');
-  const outerwear = garments.filter(g => g.category === 'outerwear');
+  const maxAttempts = count * 50; // Tentativi massimi
+  let attempts = 0;
 
-  // ===== STEP 2: GENERAZIONE OUTFIT TOP + BOTTOM + SHOES =====
-  for (const top of tops) {
-    for (const bottom of bottoms) {
-      for (const shoe of shoes) {
-        // Verifica compatibilità colori
-        const topBottomColorMatch = areColorsCompatible(top.primaryColor, bottom.primaryColor);
-        const topShoeColorMatch = areColorsCompatible(top.primaryColor, shoe.primaryColor);
-        
-        // Verifica compatibilità stili
-        const topBottomStyleMatch = areStylesCompatible(top.style, bottom.style);
-        const topShoeStyleMatch = areStylesCompatible(top.style, shoe.style);
-        
-        // Crea outfit solo se compatibile
-        if (topBottomColorMatch && topShoeStyleMatch && topBottomStyleMatch) {
-          const outfit = {
-            garments: [
-              { garmentId: top._id, category: 'top' },
-              { garmentId: bottom._id, category: 'bottom' },
-              { garmentId: shoe._id, category: 'shoes' }
-            ],
-            score: calculateOutfitScore(top, bottom, shoe),
-            type: 'top-bottom-shoes'
-          };
-          
-          // Aggiungi outerwear se compatibile
-          const compatibleOuterwear = outerwear.find(o => 
-            areColorsCompatible(o.primaryColor, top.primaryColor) &&
-            areStylesCompatible(o.style, top.style)
-          );
-          
-          if (compatibleOuterwear) {
-            outfit.garments.push({ 
-              garmentId: compatibleOuterwear._id, 
-              category: 'outerwear' 
-            });
-            outfit.score += 5; // Bonus per outfit completo
-          }
-          
-          outfits.push(outfit);
-        }
-      }
-    }
-  }
+  // Raggruppa capi per categoria
+  const byCategory = garments.reduce((acc, item) => {
+    if (!acc[item.category]) acc[item.category] = [];
+    acc[item.category].push(item);
+    return acc;
+  }, {});
 
-  // ===== STEP 3: GENERAZIONE OUTFIT DRESS + SHOES =====
-  for (const dress of dresses) {
-    for (const shoe of shoes) {
-      const colorMatch = areColorsCompatible(dress.primaryColor, shoe.primaryColor);
-      const styleMatch = areStylesCompatible(dress.style, shoe.style);
+  const dresses = byCategory.dress || [];
+  const tops = byCategory.top || [];
+  const bottoms = byCategory.bottom || [];
+  const shoes = byCategory.shoes || [];
+  const outerwear = byCategory.outerwear || [];
+  const accessories = byCategory.accessories || [];
+  const bags = byCategory.bag || [];
+  const jewelry = byCategory.jewelry || [];
+
+  // Combina accessori per semplificare
+  const allAccessories = [...accessories, ...bags, ...jewelry];
+
+  /**
+   * STRATEGIA 1: Outfit basati su DRESS
+   */
+  if (dresses.length > 0) {
+    for (const dress of dresses) {
+      if (outfits.length >= count) break;
       
-      if (colorMatch && styleMatch) {
-        const outfit = {
-          garments: [
-            { garmentId: dress._id, category: 'dress' },
-            { garmentId: shoe._id, category: 'shoes' }
-          ],
-          score: calculateOutfitScore(dress, null, shoe),
-          type: 'dress-shoes'
-        };
-        
-        outfits.push(outfit);
+      const outfit = [dress];
+      
+      // Aggiungi scarpe se disponibili
+      if (shoes.length > 0) {
+        const bestShoe = shoes
+          .map(shoe => ({ item: shoe, score: getColorScore(dress.color, shoe.color) }))
+          .sort((a, b) => b.score - a.score)[0];
+        outfit.push(bestShoe.item);
+      }
+      
+      // Aggiungi capospalla se disponibile (20% probabilità)
+      if (outerwear.length > 0 && Math.random() > 0.8) {
+        const bestOuter = outerwear
+          .map(outer => ({ item: outer, score: getColorScore(dress.color, outer.color) }))
+          .sort((a, b) => b.score - a.score)[0];
+        outfit.push(bestOuter.item);
+      }
+      
+      // Aggiungi accessorio se disponibile (30% probabilità)
+      if (allAccessories.length > 0 && Math.random() > 0.7) {
+        const randomAccessory = allAccessories[Math.floor(Math.random() * allAccessories.length)];
+        outfit.push(randomAccessory);
+      }
+      
+      const score = calculateOutfitScore(outfit);
+      if (score >= 50) { // Soglia minima
+        outfits.push({
+          items: outfit,
+          score,
+          reason: generateReason(outfit, score)
+        });
       }
     }
   }
 
-  // ===== STEP 4: ORDINAMENTO E SELEZIONE =====
-  // Ordina per punteggio decrescente e prende i migliori 6
+  /**
+   * STRATEGIA 2: Outfit TOP + BOTTOM
+   */
+  if (tops.length > 0 && bottoms.length > 0) {
+    while (outfits.length < count && attempts < maxAttempts) {
+      attempts++;
+      
+      const top = tops[Math.floor(Math.random() * tops.length)];
+      const bottom = bottoms[Math.floor(Math.random() * bottoms.length)];
+      
+      // Verifica che non siano già usati insieme
+      const alreadyExists = outfits.some(outfit => 
+        outfit.items.some(item => item._id.equals(top._id)) &&
+        outfit.items.some(item => item._id.equals(bottom._id))
+      );
+      
+      if (alreadyExists) continue;
+      
+      const outfit = [top, bottom];
+      
+      // Aggiungi scarpe (70% probabilità)
+      if (shoes.length > 0 && Math.random() > 0.3) {
+        const bestShoe = shoes
+          .map(shoe => ({ 
+            item: shoe, 
+            score: (getColorScore(top.color, shoe.color) + getColorScore(bottom.color, shoe.color)) / 2 
+          }))
+          .sort((a, b) => b.score - a.score)[0];
+        outfit.push(bestShoe.item);
+      }
+      
+      // Aggiungi capospalla (30% probabilità)
+      if (outerwear.length > 0 && Math.random() > 0.7) {
+        const randomOuter = outerwear[Math.floor(Math.random() * outerwear.length)];
+        outfit.push(randomOuter);
+      }
+      
+      // Aggiungi accessorio (40% probabilità)
+      if (allAccessories.length > 0 && Math.random() > 0.6) {
+        const randomAccessory = allAccessories[Math.floor(Math.random() * allAccessories.length)];
+        outfit.push(randomAccessory);
+      }
+      
+      const score = calculateOutfitScore(outfit);
+      if (score >= 50) {
+        outfits.push({
+          items: outfit,
+          score,
+          reason: generateReason(outfit, score)
+        });
+      }
+    }
+  }
+
+  /**
+   * STRATEGIA 3: Combinazioni creative (se non hai abbastanza outfit)
+   */
+  while (outfits.length < count && attempts < maxAttempts && garments.length >= 2) {
+    attempts++;
+    
+    // Prendi 2-4 capi casuali
+    const shuffled = [...garments].sort(() => Math.random() - 0.5);
+    const numItems = Math.min(Math.floor(Math.random() * 3) + 2, shuffled.length);
+    const outfit = shuffled.slice(0, numItems);
+    
+    // Verifica che non esista già
+    const alreadyExists = outfits.some(existingOutfit => 
+      existingOutfit.items.length === outfit.length &&
+      existingOutfit.items.every(item => outfit.some(o => o._id.equals(item._id)))
+    );
+    
+    if (alreadyExists) continue;
+    
+    const score = calculateOutfitScore(outfit);
+    if (score >= 45) { // Soglia più bassa per creatività
+      outfits.push({
+        items: outfit,
+        score,
+        reason: generateReason(outfit, score)
+      });
+    }
+  }
+
+  // Ordina per score e restituisci
   return outfits
     .sort((a, b) => b.score - a.score)
-    .slice(0, 6);
-};
-
-/**
- * Genera outfit filtrati per occasione specifica
- * @param {Array} garments - Array di capi
- * @param {string} occasion - Occasione (work, casual, party, etc.)
- * @returns {Array} Array di outfit per l'occasione
- */
-const generateOutfitsByOccasion = (garments, occasion) => {
-  // Filtra solo i capi adatti all'occasione
-  const suitableGarments = garments.filter(g => 
-    !g.occasions.length || g.occasions.includes(occasion)
-  );
-  
-  // Genera outfit con i capi filtrati
-  return generateOutfits(suitableGarments);
-};
-
-// ============================================
-// EXPORT
-// ============================================
+    .slice(0, count);
+}
 
 module.exports = {
   generateOutfits,
-  generateOutfitsByOccasion,
-  areColorsCompatible,
-  areStylesCompatible
+  calculateOutfitScore,
+  getColorScore
 };

@@ -1,140 +1,126 @@
+// server/models/Garment.js
+
 const mongoose = require('mongoose');
 
+/**
+ * Schema per i capi d'abbigliamento
+ * Ogni capo appartiene a un utente specifico
+ */
 const garmentSchema = new mongoose.Schema({
+  // Riferimento all'utente proprietario
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+    index: true // Indice per query veloci
   },
   
-  name: {
-    type: String,
-    trim: true,
-    maxlength: [50, 'Name cannot exceed 50 characters']
-  },
-  
+  // URL dell'immagine del capo
   imageUrl: {
     type: String,
     required: [true, 'Image URL is required']
   },
   
-  cloudinaryId: {
-    type: String,
-    required: true
-  },
-  
+  // Categoria del capo
   category: {
     type: String,
     required: [true, 'Category is required'],
     enum: {
-      values: ['top', 'bottom', 'dress', 'outerwear', 'shoes', 'accessory', 'underwear'],
-      message: 'Category must be: top, bottom, dress, outerwear, shoes, accessory, or underwear'
+      values: ['top', 'bottom', 'dress', 'outerwear', 'shoes', 'accessories', 'bag', 'jewelry'],
+      message: '{VALUE} non è una categoria valida'
     }
   },
   
-  subcategory: {
+  // Colore principale del capo
+  color: {
     type: String,
-    enum: {
-      values: ['t-shirt', 'shirt', 'blouse', 'tank-top', 'sweater', 'hoodie', 'cardigan', 'blazer',
-              'jeans', 'trousers', 'shorts', 'skirt', 'leggings', 'sweatpants',
-              'casual-dress', 'formal-dress', 'maxi-dress', 'mini-dress',
-              'jacket', 'coat', 'vest', 'bomber', 'denim-jacket',
-              'sneakers', 'boots', 'heels', 'flats', 'sandals', 'dress-shoes',
-              'hat', 'bag', 'belt', 'scarf', 'jewelry', 'watch', 'sunglasses'],
-      message: 'Invalid subcategory'
-    }
+    enum: [
+      'black', 'white', 'gray', 'brown', 'beige', 
+      'red', 'pink', 'orange', 'yellow', 
+      'green', 'blue', 'purple', 'navy', 'cream',
+      'unknown'
+    ],
+    default: 'unknown'
   },
   
-  primaryColor: {
+  // Stagione consigliata
+  season: {
     type: String,
-    required: [true, 'Primary color is required'],
-    enum: ['black', 'white', 'gray', 'brown', 'beige', 'red', 'pink', 'orange', 'yellow', 'green', 'blue', 'purple', 'navy', 'cream', 'multicolor']
+    enum: ['spring', 'summer', 'autumn', 'winter', 'all-season'],
+    default: 'all-season'
   },
   
-  secondaryColors: [{
+  // Tag personalizzati (es: 'casual', 'preferito', 'comodo')
+  tags: [{
     type: String,
-    enum: ['black', 'white', 'gray', 'brown', 'beige', 'red', 'pink', 'orange', 'yellow', 'green', 'blue', 'purple', 'navy', 'cream']
+    trim: true
   }],
   
+  // Stile del capo (opzionale)
   style: {
     type: String,
-    required: [true, 'Style is required'],
-    enum: {
-      values: ['casual', 'formal', 'sport', 'business', 'party', 'vintage', 'street', 'bohemian', 'minimalist'],
-      message: 'Invalid style'
-    }
+    enum: ['casual', 'formal', 'sport', 'business', 'party', 'vintage', 'street', 'other'],
+    default: 'casual'
   },
   
-  season: [{
+  // Note personali (opzionale)
+  notes: {
     type: String,
-    enum: ['spring', 'summer', 'autumn', 'winter', 'all-season']
-  }],
-  
-  occasions: [{
-    type: String,
-    enum: ['work', 'casual', 'gym', 'date', 'party', 'formal', 'travel', 'home', 'beach']
-  }],
-  
-  brand: {
-    type: String,
-    trim: true,
-    maxlength: [30, 'Brand name cannot exceed 30 characters']
+    maxlength: [500, 'Le note non possono superare 500 caratteri']
   },
   
-  price: {
-    type: Number,
-    min: [0, 'Price cannot be negative']
-  },
-  
+  // Data di acquisto (opzionale)
   purchaseDate: {
     type: Date
   },
   
-  customTags: [{
+  // Prezzo (opzionale - per statistiche)
+  price: {
+    type: Number,
+    min: 0
+  },
+  
+  // Brand (opzionale)
+  brand: {
     type: String,
     trim: true,
-    maxlength: [20, 'Tag cannot exceed 20 characters']
-  }],
-  
-  stats: {
-    timesWorn: {
-      type: Number,
-      default: 0
-    },
-    lastWorn: {
-      type: Date
-    },
-    timesInOutfits: {
-      type: Number,
-      default: 0
-    }
+    maxlength: [100, 'Il brand non può superare 100 caratteri']
   },
   
-  notes: {
-    type: String,
-    maxlength: [200, 'Notes cannot exceed 200 characters']
+  // Numero di volte utilizzato in outfit
+  usageCount: {
+    type: Number,
+    default: 0,
+    min: 0
   },
   
-  isAvailable: {
+  // Preferito
+  isFavorite: {
     type: Boolean,
-    default: true
+    default: false
   }
+  
 }, {
-  timestamps: true
+  timestamps: true // Aggiunge createdAt e updatedAt automaticamente
 });
 
+// Indici per performance
 garmentSchema.index({ userId: 1, category: 1 });
-garmentSchema.index({ userId: 1, primaryColor: 1 });
-garmentSchema.index({ userId: 1, style: 1 });
+garmentSchema.index({ userId: 1, color: 1 });
+garmentSchema.index({ userId: 1, season: 1 });
+garmentSchema.index({ userId: 1, isFavorite: 1 });
 
-garmentSchema.pre('save', function(next) {
-  if (!this.name) {
-    const categoryName = this.category.charAt(0).toUpperCase() + this.category.slice(1);
-    const colorName = this.primaryColor.charAt(0).toUpperCase() + this.primaryColor.slice(1);
-    this.name = `${colorName} ${categoryName}`;
-  }
-  next();
-});
+// Metodo per incrementare contatore utilizzo
+garmentSchema.methods.incrementUsage = function() {
+  this.usageCount += 1;
+  return this.save();
+};
+
+// Metodo per toggle preferito
+garmentSchema.methods.toggleFavorite = function() {
+  this.isFavorite = !this.isFavorite;
+  return this.save();
+};
 
 const Garment = mongoose.model('Garment', garmentSchema);
 
