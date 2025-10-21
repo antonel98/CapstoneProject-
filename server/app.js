@@ -8,9 +8,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-app.vercel.app'] // Lo cambieremo dopo
-    : 'http://localhost:3000',
+  origin: '*', // Permetti tutte le origini (per ora)
   credentials: true
 }));
 app.use(express.json());

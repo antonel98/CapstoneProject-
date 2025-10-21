@@ -1,7 +1,7 @@
 // client/src/config.js
 
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://antofitplanner-backend.onrender.com/api'  // URL backend Render (lo cambieremo dopo)
-  : 'http://localhost:5000/api';
+const config = {
+  API_URL: process.env.REACT_APP_API_URL || 'https://antofitplanner-backend.onrender.com/api'
+};
 
-export default API_URL;
+export default config;
