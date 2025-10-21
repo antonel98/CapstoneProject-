@@ -6,12 +6,11 @@ require('dotenv').config();
 
 const app = express();
 
-// CORS - Permetti TUTTO temporaneamente
+// CORS - Permetti tutto
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
@@ -25,23 +24,10 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (uploaded images)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Database connection con opzioni TLS
-const mongoOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 10000,
-  socketTimeoutMS: 45000,
-};
-
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/stylesync', mongoOptions);
-
-mongoose.connection.on('connected', () => {
-  console.log('✅ Connected to MongoDB');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error('❌ MongoDB connection error:', err);
-});
+// Database connection - SOLUZIONE SEMPLICE
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/stylesync')
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch(err => console.error('❌ MongoDB error:', err));
 
 // Routes
 app.use('/api/garments', require('./routes/garments'));
