@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import axios from 'axios';
-import API_URL from './config';
+import API_URL from '../config';
 
 function GarmentUpload() {
   const [selectedFile, setSelectedFile] = useState(null);
