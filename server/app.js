@@ -6,8 +6,11 @@ require('dotenv').config();
 
 const app = express();
 
-// CORS super permissivo per debug
-app.use(cors());
+// CORS - Soluzione semplice e funzionante
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 
 // Altri Middleware
 app.use(express.json());
