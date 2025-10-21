@@ -8,8 +8,14 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: '*', // Permetti tutte le origini (per ora)
-  credentials: true
+  origin: [
+    'https://antofitplanner.vercel.app',
+    'https://antofitplanner-netlify.netlify.app',
+    'http://localhost:3000'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
