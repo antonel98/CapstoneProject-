@@ -6,17 +6,41 @@ require('dotenv').config();
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: [
-    'https://antofitplanner.vercel.app',
-    'https://antofitplanner-netlify.netlify.app',
-    'http://localhost:3000'
-  ],
+// CORS Configuration - Complete setup
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Permetti richieste senza origin (es. Postman, app mobile)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'https://antofitplanner.vercel.app',
+      'https://antofitplanner-netlify.netlify.app',
+      'http://localhost:3000'
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('Origin bloccata:', origin);
+      callback(null, true); // Temporaneamente permetti tutto per debug
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 600,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+// Applica CORS
+app.use(cors(corsOptions));
+
+// Gestisci esplicitamente preflight requests
+app.options('*', cors(corsOptions));
+
+// Altri Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
