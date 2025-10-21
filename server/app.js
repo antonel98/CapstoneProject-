@@ -6,11 +6,17 @@ require('dotenv').config();
 
 const app = express();
 
-// CORS - Soluzione semplice e funzionante
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
+// CORS - Permetti TUTTO temporaneamente
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // Altri Middleware
 app.use(express.json());
