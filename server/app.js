@@ -19,8 +19,15 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (uploaded images)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/stylesync');
+// Database connection con opzioni TLS
+const mongoOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+};
+
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/stylesync', mongoOptions);
 
 mongoose.connection.on('connected', () => {
   console.log('✅ Connected to MongoDB');
