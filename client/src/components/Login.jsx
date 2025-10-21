@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import API_URL from './config';
 
 function Login({ onLoginSuccess, onSwitchToRegister }) {
   const [formData, setFormData] = useState({
@@ -22,7 +23,7 @@ function Login({ onLoginSuccess, onSwitchToRegister }) {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+      const response = await axios.post(`${API_URL}/auth/login`, formData);
       
       // Salva token nel localStorage
       localStorage.setItem('token', response.data.data.token);

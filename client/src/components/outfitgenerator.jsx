@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import axios from 'axios';
+import API_URL from './config';
 
 function OutfitGenerator() {
   const [outfits, setOutfits] = useState([]);
@@ -20,7 +21,7 @@ function OutfitGenerator() {
       const token = localStorage.getItem('token');
       
       const response = await axios.post(
-        'http://localhost:5000/api/outfits/generate',
+        `${API_URL}/outfits/generate`,
         { count, occasion },
         {
           headers: {
@@ -46,6 +47,8 @@ function OutfitGenerator() {
       setLoading(false);
     }
   };
+
+  const BACKEND_BASE = API_URL.replace('/api', '');
 
   return (
     <div style={{ padding: '40px 20px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -243,7 +246,7 @@ function OutfitGenerator() {
                       }}
                     >
                       <img
-                        src={`http://localhost:5000${item.imageUrl}`}
+                        src={`${BACKEND_BASE}${item.imageUrl}`}
                         alt={item.category}
                         style={{
                           width: '100%',

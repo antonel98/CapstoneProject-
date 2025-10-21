@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from './config';
 import Toast from './Toast';
 import Modal from './Modal';
 import Loading from './Loading';
@@ -31,7 +32,7 @@ function WardrobeGallery() {
   const fetchGarments = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/garments', {
+      const response = await axios.get(`${API_URL}/garments`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -52,7 +53,7 @@ function WardrobeGallery() {
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/garments/${id}`, {
+      await axios.delete(`${API_URL}/garments/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -73,7 +74,7 @@ function WardrobeGallery() {
   const handleToggleFavorite = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.patch(`http://localhost:5000/api/garments/${id}/favorite`, {}, {
+      const response = await axios.patch(`${API_URL}/garments/${id}/favorite`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -176,6 +177,8 @@ function WardrobeGallery() {
   if (loading) {
     return <Loading message="Caricamento guardaroba..." fullScreen />;
   }
+
+  const BACKEND_BASE = API_URL.replace('/api', '');
 
   return (
     <div style={{ padding: '40px 20px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -378,7 +381,7 @@ function WardrobeGallery() {
             >
               <div style={{ position: 'relative' }}>
                 <img
-                  src={`http://localhost:5000${garment.imageUrl}`}
+                  src={`${BACKEND_BASE}${garment.imageUrl}`}
                   alt={garment.category}
                   style={{
                     width: '100%',

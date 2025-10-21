@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import axios from 'axios';
+import API_URL from './config';
 
 function GarmentUpload() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -47,7 +48,7 @@ function GarmentUpload() {
       // Recupera il token dal localStorage
       const token = localStorage.getItem('token');
       
-      const response = await axios.post('http://localhost:5000/api/garments', formData, {
+      const response = await axios.post(`${API_URL}/garments`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}` // Invia il token
