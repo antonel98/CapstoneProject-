@@ -1,6 +1,8 @@
 # AntoFitPlanner 👗✨
 
 > Il tuo guardaroba intelligente che crea outfit perfetti automaticamente
+>
+> link: https://antofitplanner.vercel.app/
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/antonel98/CapstoneProject-)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Database-green)](https://www.mongodb.com/)
@@ -60,16 +62,15 @@ AntoFitPlanner digitalizza il tuo guardaroba e:
 ### Versione Corrente (V1)
 
 #### 📸 Upload e Catalogazione Capi
-- Upload foto con drag & drop
+- Upload foto 
 - Categorizzazione per tipo (top, bottom, dress, shoes, etc.)
-- Classificazione per colore primario
+- Classificazione per colore
 - Tag per stile (casual, formal, sport, business, party)
-- Metadati opzionali (brand, prezzo, note)
+
 
 #### 👔 Gestione Guardaroba
-- Visualizzazione grid responsiva di tutti i capi
+- Visualizzazione di tutti i capi
 - Filtri per categoria, colore e stile
-- Paginazione per performance ottimali
 - Eliminazione capi con conferma
 
 #### ✨ Generazione Outfit Automatica
@@ -78,20 +79,8 @@ AntoFitPlanner digitalizza il tuo guardaroba e:
 - Sistema di scoring (0-100) per ranking outfit
 - Filtri per occasione (lavoro, casual, festa, etc.)
 - Visualizzazione outfit con dettagli e punteggio
-- Massimo 6 outfit generati per query
-
-### Coming Soon (V2)
 - 🔐 Sistema di autenticazione completo (JWT)
 - 📊 Dashboard con statistiche personali
-- 📅 Calendario outfit settimanale
-- ☁️ Integrazione meteo per suggerimenti stagionali
-- 📱 Design mobile ottimizzato
-
-### Future (V3)
-- 🤖 Machine Learning per preferenze utente
-- 👁️ Computer Vision per riconoscimento automatico capi
-- 🌍 Condivisione social outfit
-- 📱 Mobile app nativa
 
 ---
 
@@ -110,7 +99,7 @@ AntoFitPlanner digitalizza il tuo guardaroba e:
 - **Mongoose** 7.5.0 - ODM per MongoDB
 - **Multer** - File Upload Middleware
 - **BCrypt** - Password Hashing
-- **JSON Web Tokens** - Autenticazione (implementazione in corso)
+- **JSON Web Tokens** - Autenticazione
 
 ### Tools & DevOps
 - **Git** - Version Control
@@ -202,7 +191,6 @@ L'algoritmo genera outfit seguendo questi step:
 2. **Generazione Combinazioni**
    - Top + Bottom + Shoes
    - Dress + Shoes
-   - Aggiunta opzionale outerwear se compatibile
 
 3. **Validazione Compatibilità**
    ```javascript
@@ -219,10 +207,6 @@ L'algoritmo genera outfit seguendo questi step:
    - +15 stesso stile
    - +10 compatibilità colori con scarpe
    - +5 per colori neutri (versatili)
-
-5. **Ranking e Selezione**
-   - Ordina per score decrescente
-   - Restituisce top 6 outfit
 
 ### Matrice Compatibilità Colori
 
@@ -300,5 +284,3 @@ CapstoneProject/
 
 
 **Made with ❤️ and lots of ☕**
-
-*Ultimo aggiornamento: 13 Ottobre 2025*
