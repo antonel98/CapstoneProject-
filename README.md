@@ -30,14 +30,6 @@
 
 **AntoFitPlanner** è un'applicazione web full-stack che risolve il problema quotidiano di decidere cosa indossare. Utilizza algoritmi intelligenti basati su teoria del colore e compatibilità degli stili per generare automaticamente outfit coordinati dal tuo guardaroba digitale.
 
-### Demo Live
-🚀 **Coming Soon** - L'applicazione sarà disponibile online entro il 21 ottobre 2025
-
-### Screenshots
-
-> 📸 *Screenshot verranno aggiunti durante il Giorno 2*
-
----
 
 ## 💡 Problema e Soluzione
 
@@ -58,8 +50,6 @@ AntoFitPlanner digitalizza il tuo guardaroba e:
 ---
 
 ## ⚡ Funzionalità
-
-### Versione Corrente (V1)
 
 #### 📸 Upload e Catalogazione Capi
 - Upload foto 
@@ -110,68 +100,21 @@ AntoFitPlanner digitalizza il tuo guardaroba e:
 
 ---
 
-## 📦 Installazione
-
-### Prerequisiti
-- **Node.js** (v14 o superiore)
-- **MongoDB** (installato e running)
-- **npm** o **yarn**
-
-### Clone del Repository
-```bash
-git clone https://github.com/antonel98/CapstoneProject-.git
-cd CapstoneProject-
-```
-
-### Setup Backend
-```bash
-cd server
-npm install
-
-# Crea file .env con le seguenti variabili:
-# MONGODB_URI=mongodb://localhost:27017/antofitplanner
-# JWT_SECRET=your-super-secret-jwt-key
-# PORT=5000
-
-npm run dev
-```
-
-Il server sarà disponibile su `http://localhost:5000`
-
-### Setup Frontend
-```bash
-cd client
-npm install
-npm start
-```
-
-Il frontend sarà disponibile su `http://localhost:3000`
-
----
 
 ## 🚀 Utilizzo
 
-### 1. Avvia l'Applicazione
-```bash
-# Terminal 1 - Backend
-cd server && npm run dev
-
-# Terminal 2 - Frontend
-cd client && npm start
-```
-
-### 2. Carica i Tuoi Capi
+### 1. Carica i Tuoi Capi
 - Naviga alla sezione **"Carica Capi"**
 - Seleziona un'immagine del capo
 - Compila i campi: categoria, colore, stile
 - Clicca su **"Carica Capo"**
 
-### 3. Visualizza il Guardaroba
+### 2. Visualizza il Guardaroba
 - Vai a **"Guardaroba"**
 - Usa i filtri per cercare capi specifici
 - Elimina capi non più necessari
 
-### 4. Genera Outfit
+### 3. Genera Outfit
 - Accedi a **"Genera Outfit"**
 - Scegli filtri opzionali (occasione, stile)
 - Clicca su **"Genera Outfit"**
