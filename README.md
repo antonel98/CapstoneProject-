@@ -17,12 +17,9 @@
 - [Problema e Soluzione](#problema-e-soluzione)
 - [Funzionalità](#funzionalità)
 - [Tech Stack](#tech-stack)
-- [Installazione](#installazione)
 - [Utilizzo](#utilizzo)
 - [Algoritmo di Matching](#algoritmo-di-matching)
 - [Struttura Progetto](#struttura-progetto)
-- [Roadmap](#roadmap)
-- [Autore](#autore)
 
 ---
 
